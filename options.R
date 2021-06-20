@@ -1,17 +1,15 @@
 
 #  Dwumianowe drzewo wyceny opcji  Cox-Ross-Rubinstein
 crr <-
-  function(TypeFlag = c("ce", "pe", "ca", "pa"), S, X, Time, r, b, sigma, n) {
-
-    # Check Flags:
-    TypeFlag <- TypeFlag[1]
+  function(type_flag = c("ce", "pe", "ca", "pa"), S, X, time, r, b, sigma, n) {
+    type_flag <- type_flag[1]
     z <- NA
-    if (TypeFlag == "ce" || TypeFlag == "ca") z <- +1
-    if (TypeFlag == "pe" || TypeFlag == "pa") z <- -1
-    if (is.na(z)) stop("TypeFlag misspecified: ce|ca|pe|pa")
+    if (type_flag == "ce" || type_flag == "ca") z <- +1
+    if (type_flag == "pe" || type_flag == "pa") z <- -1
+    if (is.na(z)) stop("Wprowadzono złą flagę. Wybierz jedną z opcji: ce|pe|ca|pa")
 
     # Parametry
-    dt <- Time / n
+    dt <- time / n
     u <- exp(sigma * sqrt(dt))
     d <- 1 / u
     p <- (exp(b * dt) - d) / (u - d)
@@ -22,7 +20,7 @@ crr <-
     OptionValue <- (abs(OptionValue) + OptionValue) / 2
 
     # European Option:
-    if (TypeFlag == "ce" || TypeFlag == "pe") {
+    if (type_flag == "ce" || type_flag == "pe") {
       for (j in seq(from = n - 1, to = 0, by = -1)) {
         for (i in 0:j) {
           OptionValue[i + 1] <-
@@ -32,7 +30,7 @@ crr <-
     }
 
     # American Option:
-    if (TypeFlag == "ca" || TypeFlag == "pa") {
+    if (type_flag == "ca" || type_flag == "pa") {
       for (j in seq(from = n - 1, to = 0, by = -1)) {
         for (i in 0:j) {
           OptionValue[i + 1] <- max(
@@ -48,26 +46,18 @@ crr <-
   }
 
 # -------------------------------------------------------------------------------------
-
+#  Dwumianowe drzewo wyceny opcji  Jarrow Rudd
 jr <-
-  function(TypeFlag = c("ce", "pe", "ca", "pa"), S, X, Time, r, b, sigma, n) {
-
-    # Description:
-    #   JR Modfication to the Binomial Tree Option
-
-    # FUNCTION:
-
-    # Check Flags:
-    TypeFlag <- TypeFlag[1]
-    if (TypeFlag == "ce" || TypeFlag == "ca") z <- +1
-    if (TypeFlag == "pe" || TypeFlag == "pa") z <- -1
-
+  function(type_flag = c("ce", "pe", "ca", "pa"), S, X, time, r, b, sigma, n) {
+    type_flag <- type_flag[1]
+    z <- NA
+    if (type_flag == "ce" || type_flag == "ca") z <- +1
+    if (type_flag == "pe" || type_flag == "pa") z <- -1
+    if (is.na(z)) stop("Wprowadzono złą flagę. Wybierz jedną z opcji: ce|pe|ca|pa")
     # Parameters:
-    dt <- Time / n
-    # DW Bug Fix: r -> b
+    dt <- time / n
     u <- exp((b - sigma^2 / 2) * dt + sigma * sqrt(dt))
     d <- exp((b - sigma^2 / 2) * dt - sigma * sqrt(dt))
-    # DW End of Bug Fix
     p <- 1 / 2
     Df <- exp(-r * dt)
 
@@ -76,7 +66,7 @@ jr <-
     OptionValue <- (abs(OptionValue) + OptionValue) / 2
 
     # European Option:
-    if (TypeFlag == "ce" || TypeFlag == "pe") {
+    if (type_flag == "ce" || type_flag == "pe") {
       for (j in seq(from = n - 1, to = 0, by = -1)) {
         for (i in 0:j) {
           OptionValue[i + 1] <-
@@ -86,7 +76,7 @@ jr <-
     }
 
     # American Option:
-    if (TypeFlag == "ca" || TypeFlag == "pa") {
+    if (type_flag == "ca" || type_flag == "pa") {
       for (j in seq(from = n - 1, to = 0, by = -1)) {
         for (i in 0:j) {
           OptionValue[i + 1] <- max(
@@ -104,16 +94,16 @@ jr <-
 # -------------------------------------------------------------------------------------
 
 tian <-
-  function(TypeFlag = c("ce", "pe", "ca", "pa"), S, X, Time, r, b, sigma, n) {
+  function(type_flag = c("ce", "pe", "ca", "pa"), S, X, time, r, b, sigma, n) {
     # FUNCTION:
 
     # Check Flags:
-    TypeFlag <- TypeFlag[1]
-    if (TypeFlag == "ce" || TypeFlag == "ca") z <- +1
-    if (TypeFlag == "pe" || TypeFlag == "pa") z <- -1
+    type_flag <- type_flag[1]
+    if (type_flag == "ce" || type_flag == "ca") z <- +1
+    if (type_flag == "pe" || type_flag == "pa") z <- -1
 
     # Parameters:
-    dt <- Time / n
+    dt <- time / n
     M <- exp(b * dt)
     V <- exp(sigma^2 * dt)
     u <- (M * V / 2) * (V + 1 + sqrt(V * V + 2 * V - 3))
@@ -126,7 +116,7 @@ tian <-
     OptionValue <- (abs(OptionValue) + OptionValue) / 2
 
     # European Option:
-    if (TypeFlag == "ce" || TypeFlag == "pe") {
+    if (type_flag == "ce" || type_flag == "pe") {
       for (j in seq(from = n - 1, to = 0, by = -1)) {
         for (i in 0:j) {
           OptionValue[i + 1] <-
@@ -136,7 +126,7 @@ tian <-
     }
 
     # American Option:
-    if (TypeFlag == "ca" || TypeFlag == "pa") {
+    if (type_flag == "ca" || type_flag == "pa") {
       for (j in seq(from = n - 1, to = 0, by = -1)) {
         for (i in 0:j) {
           OptionValue[i + 1] <- max(
@@ -151,48 +141,34 @@ tian <-
     OptionValue[1]
   }
 
-
-
-
-
 # Example from Hull's book:
 # Expected value: 4.488459
 crr(
-  TypeFlag = "pa", S = 50, X = 50,
-  Time = 5 / 12, r = 0.1, b = 0.1, sigma = 0.4, n = 5
+  type_flag = "pa", S = 50, X = 50,
+  time = 5 / 12, r = 0.1, b = 0.1, sigma = 0.4, n = 5
 )
 
 # Another example
-# Expected value: 4.919211
+# Expected value: 4.92
 crr(
-  TypeFlag = "pa", S = 100, X = 95,
-  Time = 0.5, r = 0.08, b = 0.08, sigma = 0.3, n = 5
+  type_flag = "pa", S = 100, X = 95,
+  time = 0.5, r = 0.08, b = 0.08, sigma = 0.3, n = 5
 )
 
 # Expected Value: 14.93
 crr(
-  TypeFlag = "ce", S = 100, X = 100,
-  Time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
+  type_flag = "ce", S = 100, X = 100,
+  time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
 )
 
+# Expected Value: 14.94
 jr(
-  TypeFlag = "ce", S = 100, X = 100,
-  Time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
+  type_flag = "ce", S = 100, X = 100,
+  time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
 )
 
-
+# Expected Value: 14.99
 tian(
-  TypeFlag = "ce", S = 100, X = 100,
-  Time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
-)
-
-
-TIANBinomialTreeOption(
-  TypeFlag = "ce", S = 100, X = 100,
-  Time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
-)
-
-JRBinomialTreeOption(
-  TypeFlag = "ce", S = 100, X = 100,
-  Time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
+  type_flag = "ce", S = 100, X = 100,
+  time = 1, r = 0.1, b = 0.1, sigma = 0.25, n = 50
 )
